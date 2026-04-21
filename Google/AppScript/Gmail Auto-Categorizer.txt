@@ -1,0 +1,114 @@
+/**
+ * GMAIL AUTO-CATEGORIZER
+ * * Instructions:
+ * 1. Go to script.google.com
+ * 2. Create a new project.
+ * 3. Replace the code with this script.
+ * 4. Update the EMAIL_MAPPING constant below.
+ * 5. Click "Run" -> choose "categorizeOldEmails".
+ * 6. (Optional) Set a "Trigger" (clock icon) to run this daily.
+ */
+
+// --- CONFIGURATION: EDIT THIS SECTION ---
+const EMAIL_MAPPING = {
+  'commercial_bk@combank.net': 'Commercial Bank SL',
+  'estatements@cbq.qa': 'Commercial Bank Statement',
+  '@bank.com': 'Finance/Bank General',
+  'newsletters@example.com': 'Newsletters',
+  'billing@company.com': 'Finance/Bills',
+  'alerts@bank.com': 'Finance/Alerts',
+  'updates@socialmedia.com': 'Social'
+};
+
+const AGE_THRESHOLD_WEEKS = 2; // Only process emails older than this
+// ----------------------------------------
+
+function categorizeOldEmails() {
+  const delayDays = AGE_THRESHOLD_WEEKS * 7;
+  const searchQuery = `in:inbox older_than:${delayDays}d`;
+  
+  let start = 0;
+  let totalProcessed = 0;
+  const BATCH_SIZE = 100;
+  const MAX_PER_RUN = 500; 
+
+  // Pre-process mapping keys to lowercase for foolproof matching
+  const normalizedMapping = {};
+  for (let key in EMAIL_MAPPING) {
+    normalizedMapping[key.toLowerCase()] = EMAIL_MAPPING[key];
+  }
+
+  Logger.log(`Searching for: ${searchQuery}`);
+
+  while (totalProcessed < MAX_PER_RUN) {
+    const threads = GmailApp.search(searchQuery, start, BATCH_SIZE);
+    
+    if (threads.length === 0) {
+      Logger.log(totalProcessed === 0 ? `No emails older than ${AGE_THRESHOLD_WEEKS} weeks found.` : `Finished.`);
+      break;
+    }
+
+    Logger.log(`Processing batch...`);
+    let archivedThisBatch = 0;
+
+    threads.forEach(thread => {
+      // HIDDEN THREAD DATA: Check every sender in the thread to ensure we don't 
+      // miss the thread just because the last message was a reply from you.
+      const senders = thread.getMessages().map(msg => extractEmailAddress(msg.getFrom()));
+      
+      let matchedLabel = null;
+
+      for (const [key, label] of Object.entries(normalizedMapping)) {
+        const hasMatch = senders.some(sender => 
+          key.startsWith('@') ? sender.endsWith(key) : sender === key
+        );
+
+        if (hasMatch) {
+          matchedLabel = label;
+          break; 
+        }
+      }
+      
+      if (matchedLabel) {
+        applyLabelAndArchive(thread, matchedLabel);
+        archivedThisBatch++;
+      }
+    });
+
+    totalProcessed += threads.length;
+    // Advance start only by threads we didn't archive (since archived ones leave the inbox)
+    start += (threads.length - archivedThisBatch);
+  }
+}
+
+/**
+ * Extracts "email@addr.com" from "Name <email@addr.com>"
+ */
+function extractEmailAddress(fromHeader) {
+  if (!fromHeader) return "";
+  const match = fromHeader.match(/<([^>]+)>/);
+  const email = match ? match[1] : fromHeader;
+  return email.trim().toLowerCase();
+}
+
+/**
+ * Creates label if missing, applies it, and moves thread out of Inbox.
+ */
+function applyLabelAndArchive(thread, labelName) {
+  let label = GmailApp.getUserLabelByName(labelName);
+  
+  if (!label) {
+    Logger.log(`Label [${labelName}] not found. Creating it...`);
+    try {
+      label = GmailApp.createLabel(labelName);
+    } catch (e) {
+      label = GmailApp.getUserLabelByName(labelName);
+    }
+  }
+  
+  if (label) {
+    Logger.log(`Categorizing: "${thread.getFirstMessageSubject()}" -> [${labelName}]`);
+    thread.addLabel(label);
+    thread.moveToArchive(); 
+  }
+}
