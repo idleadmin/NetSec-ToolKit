@@ -49,7 +49,12 @@ This is a collection of working, real-world scripts. If you have a practical sol
 ---
 
 ## ⚠️ Disclaimer
-These scripts are provided **"as-is"**. While they have been tested in production environments, you should **run them at your own risk**. Always perform thorough testing in a lab or staging environment before production use. I am not responsible for any damages, data loss, or system instability caused by the use of these scripts.
+These scripts are provided **"as-is"**. While they have been tested in production environments, you should **run them at your own risk**. 
+
+> [!NOTE]
+> Some scripts may contain **deprecated commands or dependencies**. Users are encouraged to replace these with currently supported alternatives. If you encounter any outdated logic or broken dependencies, please let me know so I can update the toolkit!
+
+Always perform thorough testing in a lab or staging environment before production use. I am not responsible for any damages, data loss, or system instability caused by the use of these scripts.
 
 ---
 
