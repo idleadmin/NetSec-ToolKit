@@ -11,8 +11,6 @@
 
 // --- CONFIGURATION: EDIT THIS SECTION ---
 const EMAIL_MAPPING = {
-  'commercial_bk@combank.net': 'Commercial Bank SL',
-  'estatements@cbq.qa': 'Commercial Bank Statement',
   '@bank.com': 'Finance/Bank General',
   'newsletters@example.com': 'Newsletters',
   'billing@company.com': 'Finance/Bills',
@@ -29,8 +27,8 @@ function categorizeOldEmails() {
   
   let start = 0;
   let totalProcessed = 0;
-  const BATCH_SIZE = 100;
-  const MAX_PER_RUN = 500; 
+  const BATCH_SIZE = 500;
+  const MAX_PER_RUN = 1000; 
 
   // Pre-process mapping keys to lowercase for foolproof matching
   const normalizedMapping = {};
