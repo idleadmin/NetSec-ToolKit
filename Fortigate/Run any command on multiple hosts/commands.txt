@@ -1,0 +1,4 @@
+config system interface
+edit port1
+set alias WAN
+end
