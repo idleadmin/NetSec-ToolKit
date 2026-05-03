@@ -1,0 +1,54 @@
+<#
+.SYNOPSIS
+Configures a geography-based Local-In Policy to restrict IPsec VPN access (IKE/ESP) to specific countries on a FortiGate interface.
+
+.DESCRIPTION
+This script performs a multi-step security configuration on a FortiGate unit. First, it defines two geography-based firewall addresses for Qatar (QA) and Sri Lanka (LK). These are then aggregated into a firewall address group named "Allowed-Geography". Finally, the script modifies the Local-In Policy table—which controls traffic destined for the FortiGate unit itself—to allow IKE and ESP traffic from these specific regions while explicitly denying all other IKE/ESP traffic on the 'port1' interface. This is a common hardening technique used to reduce the attack surface of VPN gateways against global brute-force or DDoS attempts.
+
+.EXPECTED RESULT
+FortiOS Configuration Change: The creation of two geography address objects, one address group, and two local-in-policy entries (ID 1 and ID 99).
+
+.EXAMPLE
+The following script would implement a similar logic but for a different service like HTTPS management, restricting administrative access to a specific geographic region.
+#>
+
+
+config firewall address
+
+edit "Qatar"
+      set type geography
+      set country "QA"
+    next
+    edit "SL"
+      set type geography
+      set country "LK"
+    next
+end
+
+config firewall addrgrp
+
+edit "Allowed-Geography"
+    set member "Qatar" "SL"
+next
+end
+
+config firewall local-in-policy
+   edit 1
+      set intf "port1"
+      set srcaddr "Allowed-Geography"
+      set dstaddr "all"
+      set action accept
+      set service "IKE" "ESP"
+      set schedule "always"
+   next
+end
+config firewall local-in-policy
+   edit 99
+      set intf "port1"
+      set srcaddr "all"
+      set dstaddr "all"
+      set action deny
+      set service "IKE" "ESP"
+      set schedule "always"
+    next
+end
