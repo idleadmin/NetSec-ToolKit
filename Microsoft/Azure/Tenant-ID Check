@@ -1,0 +1,57 @@
+<#
+.SYNOPSIS
+    Retrieves and displays the Microsoft Entra ID (Azure AD) Tenant ID.
+
+.DESCRIPTION
+    This script connects to Microsoft Graph using the Connect-MgGraph cmdlet.
+    Once authenticated, it retrieves the current session context to extract 
+    and display the Tenant ID.
+
+    [PREREQUISITES]
+    This script requires the Microsoft Graph PowerShell SDK. Specifically, 
+    the 'Microsoft.Graph.Authentication' module must be installed. 
+    
+    If you do not have it installed, open PowerShell as an Administrator 
+    and run the following command before executing this script:
+    
+    Install-Module Microsoft.Graph.Authentication -Scope CurrentUser -Force
+
+.EXAMPLE
+    .\Get-TenantId.ps1
+    
+    Connects to Microsoft Graph, prompts for interactive login (if not already 
+    connected), outputs the Tenant ID to the console.
+#>
+
+#Requires -Modules Microsoft.Graph.Authentication
+
+# Set Error Action Preference
+$ErrorActionPreference = "Stop"
+
+try {
+    Write-Host "Connecting to Microsoft Graph..." -ForegroundColor Cyan
+    # Connect to MS Graph (Interactive browser login)
+    Connect-MgGraph -NoWelcome
+
+    # Retrieve the current connection context
+    $MgContext = Get-MgContext
+
+    if ($MgContext.TenantId) {
+        Write-Host "`n========================================" -ForegroundColor Green
+        Write-Host "Tenant ID successfully retrieved!" -ForegroundColor Green
+        Write-Host "========================================" -ForegroundColor Green
+        Write-Host "Tenant ID: " -NoNewline
+        Write-Host "$($MgContext.TenantId)" -ForegroundColor Yellow
+        Write-Host "========================================`n" -ForegroundColor Green
+    } else {
+        Write-Host "`n[!] Could not retrieve Tenant ID from the current context." -ForegroundColor Yellow
+    }
+
+} catch {
+    Write-Host "`n[X] An error occurred while running the script:" -ForegroundColor Red
+    Write-Host $_.Exception.Message -ForegroundColor Red
+} finally {
+    # Ensure the script does not close immediately
+    Write-Host ""
+    Read-Host "Press [Enter] to exit"
+}
