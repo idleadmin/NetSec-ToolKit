@@ -1,0 +1,19 @@
+vlan 20
+    name Voice
+    voice
+
+interface 1/1/10
+    description IP Phone + PC
+    no shutdown
+
+    vlan trunk native 10
+    vlan trunk allowed 20,10
+    qos trust dscp
+    spanning-tree bpdu-guard
+    spanning-tree port-type admin-edge
+
+    lldp enable
+    lldp med enable
+
+
+#In newer Aruba CX firmware (10.4+), you can also use vlan access 10 and vlan voice 20 to achieve this exact same trunking behavior with Cisco-like syntax.

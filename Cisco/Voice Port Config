@@ -1,0 +1,13 @@
+interface GigabitEthernet1/0/10
+ description IP Phone + PC
+ switchport mode access
+ switchport access vlan 10
+ switchport voice vlan 20
+ 
+ spanning-tree portfast
+ 
+ ! Note: Legacy command for older Catalyst switches
+ mls qos trust cos 
+
+
+#The command mls qos trust cos is required on older Catalyst switches (like the 2960/3750). However, modern IOS-XE switches (like the Catalyst 9000 series) use MQC and trust QoS markings by default, rendering that command obsolete on newer hardware.
